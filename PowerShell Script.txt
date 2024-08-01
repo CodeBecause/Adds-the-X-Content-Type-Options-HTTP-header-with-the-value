@@ -1,0 +1,30 @@
+# Define the header name and value
+$headerName = "X-Content-Type-Options"
+$headerValue = "add specific value"
+
+# Import the WebAdministration module
+Import-Module WebAdministration
+
+# Get the IIS server's HTTP response headers
+$headers = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.webServer/httpProtocol/customHeaders" -name "." 
+
+# Check if the header already exists
+$existingHeader = $headers | Where-Object { $_.name -eq $headerName }
+
+if ($existingHeader) {
+    Write-Output "Header $headerName already exists with value: $($existingHeader.value)"
+} else {
+    # Add the header if it does not exist
+    Add-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.webServer/httpProtocol/customHeaders" -name "." -value @{name=$headerName;value=$headerValue}
+    Write-Output "Header $headerName added with value: $headerValue"
+}
+
+# Verify that the header was added
+$headers = Get-WebConfigurationProperty -pspath 'MACHINE/WEBROOT/APPHOST' -filter "system.webServer/httpProtocol/customHeaders" -name "." 
+$addedHeader = $headers | Where-Object { $_.name -eq $headerName }
+
+if ($addedHeader) {
+    Write-Output "Verification: Header $headerName is present with value: $($addedHeader.value)"
+} else {
+    Write-Output "Verification failed: Header $headerName is not present"
+}
